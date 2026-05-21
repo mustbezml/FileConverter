@@ -8,7 +8,7 @@ logger = Logger("Converter")
 
 class XMLStorage:
     def __init__(self, file="input/impulse_test_input.xml"):
-        self.classes = []
+        self.classes = {}
         self.aggregations = []
         self.file = file
 
@@ -22,7 +22,8 @@ class XMLStorage:
                 child.attrib["Attributes"] = [atr.attrib for atr in child]
 
             if child.tag == "Class":
-                self.classes.append(child.attrib)
+                class_name = child.attrib.pop("name")
+                self.classes[class_name] = child.attrib
             elif child.tag == "Aggregation":
                 self.aggregations.append(child.attrib)
 
@@ -42,14 +43,30 @@ class FileConverter:
 
     def create_config(self):
         file = self._open_file("output/config.xml")
+        root_name, root_values = list(self.xml_storage.classes.items())[0]
+        root = ET.Element(root_name)
 
-        root = ET.Element(self.xml_storage.classes[0]["name"])
-        if "Attributes" in self.xml_storage.classes[0]:
-            for atr in self.xml_storage.classes[0]["Attributes"]:
+        if "Attributes" in root_values:
+            for atr in root_values["Attributes"]:
                 name = ET.SubElement(root, atr["name"])
                 name.text = atr["type"]
 
+        for aggregation in self.xml_storage.aggregations:
+            if aggregation["target"] == root_name:
+                target_root = root
+            else:
+                target_root = root.find(aggregation["target"])
+            source_name = aggregation["source"]
+            element = self.xml_storage.classes[source_name]
+            
+            new_element = ET.SubElement(target_root, source_name)
+
+            if "Attributes" in element:
+                for atr in element["Attributes"]:
+                    name = ET.SubElement(new_element, atr["name"])
+                    name.text = atr["type"]
+
+        ET.indent(root, space="    ")
 
         tree = ET.ElementTree(root)
         tree.write(file, encoding='utf-8', xml_declaration=True, short_empty_elements=False)
-
