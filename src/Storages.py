@@ -1,5 +1,10 @@
 import json
 import xml.etree.ElementTree as ET
+from pathlib import Path
+
+from logging import Logger
+
+logger = Logger("Storages")
 
 class XMLStorage:
     def __init__(self, file="input/impulse_test_input.xml"):
@@ -40,6 +45,18 @@ class JSONStorage:
 
         self.is_patched = len(self.added_params) > 0
 
+    def form_added(self, patched_storage):
+        result = []
+        for k, v in patched_storage.added_params.items():
+            result.append(
+                {
+                    "key": k,
+                    'value': v
+                }
+            )
+        
+        return result
+
     def find_deletions(self, patched_storage):
         config_params = set(self.params.keys())
         patched_params = set(patched_storage.params.keys())
@@ -59,4 +76,14 @@ class JSONStorage:
                 )
         return result
 
-
+    def create_deltas(self, patched_storage, output="output/delta.json"):
+        with open(output, "w") as f:
+            json.dump(
+                {
+                    "additions": self.form_added(patched_storage),
+                    "deleteions": self.find_deletions(patched_storage),
+                    "updates": self.form_updates(patched_storage)
+                },
+                f, indent=2
+            )
+        logger.info(f"File {output} created...")

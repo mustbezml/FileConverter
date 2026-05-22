@@ -11,7 +11,11 @@ logger = Logger("Converter")
 class FileConverter:
     def __init__(self):
         self.xml_storage = XMLStorage()
+        self.config = JSONStorage("./input/config.json")
+        self.patched_config = JSONStorage("./input/patched_config.json")
+
         self.xml_storage.disassemble_xml()
+
         if not self.xml_storage.classes or not self.xml_storage.aggregations:
             logger.warning("Storage data is empty. It may cause unexpected problems")
 
@@ -20,6 +24,10 @@ class FileConverter:
         file.touch(exist_ok=True)
 
         return file
+    
+    def covert(self):
+        self.create_config()
+        self.config.create_deltas(self.patched_config)
 
     def create_config(self, output_file="output/config.xml"):
         file = self._open_file(output_file)
@@ -50,3 +58,4 @@ class FileConverter:
 
         tree = ET.ElementTree(root)
         tree.write(file, encoding='utf-8', xml_declaration=True, short_empty_elements=False)
+        logger.info(f"File {output_file} created...")
