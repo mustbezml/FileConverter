@@ -39,3 +39,12 @@ def test_deletions():
     json_compare_data = set.symmetric_difference(set(input_data.keys()), list({k for k in patched_input_data if not k.startswith("added")}))
     json_compare_data = list(json_compare_data)
     assert test_data.find_deletions(test_patched_data) == json_compare_data
+
+def test_res_patched_formation():
+    with open("input/patched_config.json", 'r') as f:
+        input_data = json.load(f)
+
+    with open("output/res_patched_config.json", 'r') as f:
+        patched_input_data = json.load(f)
+
+    assert input_data == patched_input_data

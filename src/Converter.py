@@ -28,6 +28,7 @@ class FileConverter:
     def covert(self):
         self.create_config()
         self.config.create_deltas(self.patched_config)
+        self.config.create_res_patched("./output/delta.json")
 
     def create_config(self, output_file="output/config.xml"):
         file = self._open_file(output_file)

@@ -81,9 +81,39 @@ class JSONStorage:
             json.dump(
                 {
                     "additions": self.form_added(patched_storage),
-                    "deleteions": self.find_deletions(patched_storage),
+                    "deletions": self.find_deletions(patched_storage),
                     "updates": self.form_updates(patched_storage)
                 },
                 f, indent=2
             )
         logger.info(f"File {output} created...")
+
+    # Немного не понял зачем нужен этот выходной файл, потому что если есть входной
+    # patched_config.json, то почему бы его просто не скопировать как выходной?
+    # На всякий случай написал алгоритм для обработки, но самый логичный вариант - это
+    # просто скопировать patched_config.json в res_patched_config.json
+    def create_res_patched(self, deltas, output="output/res_patched_config.json"):
+        data = {}
+        if isinstance(deltas, str):
+            with open(deltas, "r") as f:
+                data = json.load(f)
+        else:
+            data = deltas
+
+        additions = {obj["key"]: obj["value"] for obj in data["additions"]}
+        deletions = data["deletions"]
+        updates = {obj["key"]: obj["to"] for obj in data["updates"]}
+
+        result = {**self.params, **additions}
+
+        for k in self.params.keys():
+            if k in deletions:
+                result.pop(k)
+
+            updated_value = updates.get(k)
+
+            if updated_value is not None:
+                result[k] = updated_value
+        
+        with open(output, 'w') as f:
+            json.dump(result, f, indent=2)
