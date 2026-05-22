@@ -21,8 +21,8 @@ class FileConverter:
 
         return file
 
-    def create_config(self):
-        file = self._open_file("output/config.xml")
+    def create_config(self, output_file="output/config.xml"):
+        file = self._open_file(output_file)
         root_name, root_values = list(self.xml_storage.classes.items())[0]
         root = ET.Element(root_name)
 

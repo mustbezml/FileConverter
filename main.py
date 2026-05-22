@@ -1,6 +1,7 @@
-from bin import Converter
+from src import Converter
+from src.Storages import JSONStorage
+
+import json
 
 if __name__ == "__main__":
-    x = Converter.XMLStorage()
-    f = Converter.FileConverter()
-    f.create_config()
+    ...
