@@ -25,10 +25,49 @@ class FileConverter:
 
         return file
     
-    def covert(self):
+    def convert(self):
         self.create_config()
         self.config.create_deltas(self.patched_config)
         self.config.create_res_patched("./output/delta.json")
+        self.create_meta()
+
+    def create_meta(self, output_file="output/meta.json", config_path="output/config.xml"):
+        aggregations = self.xml_storage.aggregations[::-1]
+        aggregations.append({"source": "BTS", "target": None})
+        classes = self.xml_storage.classes
+
+        result = []
+        root = self.xml_storage.open_xml(config_path)
+
+        for aggr in aggregations:
+            class_name = aggr["source"]
+            current_class = classes[class_name]
+
+            class_data = {
+                "class": class_name,
+                "documentation": current_class["documentation"],
+                "isRoot": current_class["isRoot"],
+                
+            }
+
+            if "sourceMultiplicity" in aggr:
+                amplittude = aggr["sourceMultiplicity"].split('..')
+                class_data["max"] = amplittude[1] if len(amplittude) > 1 else amplittude[0]
+                class_data["min"] = amplittude[0]
+
+
+            children = [{"name": n["source"], "type": "class"} for n in aggregations if n["target"] == class_name]
+            
+            if "Attributes" in current_class:
+                attributes = [{"name": n, "type": t} for n, t in current_class["Attributes"]]
+            else:
+                attributes = []
+
+            class_data["parameters"] = [*children, *attributes]
+            result.append(class_data)
+
+        with open(output_file, "w") as f:
+            json.dump(result, f, indent=2)
 
     def create_config(self, output_file="output/config.xml"):
         file = self._open_file(output_file)

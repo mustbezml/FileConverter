@@ -1,6 +1,5 @@
 import json
 import xml.etree.ElementTree as ET
-from pathlib import Path
 
 from logging import Logger
 
@@ -12,9 +11,12 @@ class XMLStorage:
         self.aggregations = []
         self.file = file
 
+    def open_xml(self, file):
+        tree = ET.parse(file)
+        return tree.getroot()
+
     def disassemble_xml(self):
-        tree = ET.parse(self.file)
-        root = tree.getroot()
+        root = self.open_xml(self.file)
 
         # Нужно будет переделать
         for child in root:
@@ -57,7 +59,7 @@ class JSONStorage:
         
         return result
 
-    def find_deletions(self, patched_storage):
+    def form_deletions(self, patched_storage):
         config_params = set(self.params.keys())
         patched_params = set(patched_storage.params.keys())
         
@@ -81,7 +83,7 @@ class JSONStorage:
             json.dump(
                 {
                     "additions": self.form_added(patched_storage),
-                    "deletions": self.find_deletions(patched_storage),
+                    "deletions": self.form_deletions(patched_storage),
                     "updates": self.form_updates(patched_storage)
                 },
                 f, indent=2
