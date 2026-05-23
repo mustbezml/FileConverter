@@ -9,10 +9,10 @@ from .Storages import *
 logger = Logger("Converter")
 
 class FileConverter:
-    def __init__(self):
+    def __init__(self, config="./input/config.json", patched_config="./input/patched_config.json"):
         self.xml_storage = XMLStorage()
-        self.config = JSONStorage("./input/config.json")
-        self.patched_config = JSONStorage("./input/patched_config.json")
+        self.config = JSONStorage(config)
+        self.patched_config = JSONStorage(patched_config)
 
         self.xml_storage.disassemble_xml()
 
@@ -46,7 +46,7 @@ class FileConverter:
             class_data = {
                 "class": class_name,
                 "documentation": current_class["documentation"],
-                "isRoot": current_class["isRoot"],
+                "isRoot": current_class["isRoot"] == "true",
                 
             }
 
